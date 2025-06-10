@@ -10,31 +10,33 @@
   <div id="login">
     <h2>ユーザー名を入力してください</h2>
     <input type="text" id="username">
-    <button id="loginButton">開始</button>
+    <button id="loginButton" class="rounded">開始</button>
   </div>
 
   <div id="chat" style="display:none;">
     <div id="chat-box"></div>
     <input type="text" id="message">
-    <button onclick="sendMessage()">送信</button>
-    <button onclick="logout()">ログアウト</button>
-    <button onclick="changeUsername()">名前変更</button>
+    <button onclick="sendMessage()" class="rounded">送信</button>
+    <button onclick="logout()" class="rounded">ログアウト</button>
+    <button onclick="changeUsername()" class="rounded">名前変更</button>
+    <button onclick="deleteChat()" class="rounded">チャット削除</button>
   </div>
 
   <script>
     const socket = io();
     let username = localStorage.getItem('chatUsername') || "";
 
-    function loginHandler() {
+    function login() {
       username = document.getElementById("username").value.trim();
       if (username) {
         localStorage.setItem('chatUsername', username);
         document.getElementById("login").style.display = "none";
         document.getElementById("chat").style.display = "block";
+        socket.emit('request history');
       }
     }
 
-    document.getElementById("loginButton").addEventListener("click", loginHandler);
+    document.getElementById("loginButton").addEventListener("click", login);
 
     function logout() {
       localStorage.removeItem('chatUsername');
@@ -57,6 +59,17 @@
       }
     }
 
+    function deleteChat() {
+      const pw = prompt("パスワードを入力:");
+      if (pw === "0826") {
+        fetch('/clear', { method: 'POST' }).then(() => {
+          document.getElementById("chat-box").innerHTML = "";
+        });
+      } else {
+        alert("パスワードが間違っています");
+      }
+    }
+
     function escapeHTML(str) {
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
@@ -65,7 +78,7 @@
       const urlPattern = /(https?:\/\/[^\x00-\x20"<>]*)/g;
       return text.split(urlPattern).map(segment => {
         if (segment.match(urlPattern)) {
-          return `<a href="${segment}" target="_blank" class="chat-link" data-url="${segment}">${segment}</a>`;
+          return `<a href="https://www-google-com.translate.goog/?_x_tr_sl=en&_x_tr_tl=ja&_x_tr_hl=ja&_x_tr_pto=wapp&_x_tr_hist=true&u=${encodeURIComponent(segment)}" target="_blank" class="chat-link" data-url="${segment}">${segment}</a>`;
         } else {
           return escapeHTML(segment);
         }
@@ -73,38 +86,26 @@
     }
 
     socket.on('message', data => {
+      addMessage(data);
+    });
+
+    socket.on('history', history => {
+      document.getElementById("chat-box").innerHTML = "";
+      history.forEach(data => addMessage(data));
+    });
+
+    function addMessage(data) {
       const box = document.getElementById("chat-box");
       const div = document.createElement("div");
       div.className = data.user === username ? 'bubble me' : 'bubble you';
       div.innerHTML = `<b>${escapeHTML(data.user)}</b>: ${parseMessageText(data.text)}`;
       box.appendChild(div);
-
-      const link = div.querySelector('.chat-link');
-      if (link) fetchPreview(link.dataset.url, div);
-
       box.scrollTop = box.scrollHeight;
-    });
-
-    function fetchPreview(url, containerDiv) {
-      fetch(`/preview?url=${encodeURIComponent(url)}`)
-        .then(res => res.json())
-        .then(meta => {
-          if (meta.title || meta.description || meta.image) {
-            const preview = document.createElement("div");
-            preview.className = "link-preview";
-            if (meta.image) preview.innerHTML += `<img src="${meta.image}" alt="Preview Image">`;
-            if (meta.title) preview.innerHTML += `<div class="preview-title">${escapeHTML(meta.title)}</div>`;
-            if (meta.description) preview.innerHTML += `<div class="preview-desc">${escapeHTML(meta.description)}</div>`;
-            containerDiv.appendChild(preview);
-          }
-        })
-        .catch(console.error);
     }
 
-    // 自動ログイン処理
     if (username) {
       document.getElementById("username").value = username;
-      loginHandler();
+      login();
     }
   </script>
 </body>

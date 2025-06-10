@@ -1,43 +1,41 @@
-from flask import Flask, render_template, request, send_from_directory, jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
-import os, shutil, requests
-from bs4 import BeautifulSoup
-from werkzeug.utils import secure_filename
-
-UPLOAD_FOLDER = 'static/uploads'
+import json
+import os
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+HISTORY_FILE = "chat_history.json"
 
-# サーバー起動時にuploadsフォルダを空にする
-if os.path.exists(UPLOAD_FOLDER):
-    shutil.rmtree(UPLOAD_FOLDER)
-os.makedirs(UPLOAD_FOLDER)
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, encoding='utf-8') as f:
+            return json.load(f)
+    return []
 
-@app.route('/')
+def save_message(message):
+    history = load_history()
+    history.append(message)
+    with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+        json.dump(history, f, ensure_ascii=False)
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/preview')
-def preview():
-    url = request.args.get('url')
-    try:
-        resp = requests.get(url, timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        def get(prop):
-            tag = soup.find('meta', property=prop)
-            return tag['content'] if tag and 'content' in tag.attrs else ''
-        return jsonify({
-            'title': get('og:title') or soup.title.string if soup.title else '',
-            'description': get('og:description') or '',
-            'image': get('og:image') or ''
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)})
-
-@socketio.on('message')
+@socketio.on("message")
 def handle_message(data):
-    emit('message', data, broadcast=True)
+    save_message(data)
+    emit("message", data, broadcast=True)
 
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+@socketio.on("request history")
+def send_history():
+    emit("history", load_history())
+
+@app.route("/clear", methods=["POST"])
+def clear_history():
+    open(HISTORY_FILE, "w").write("[]")
+    return "", 204
+
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0", port=5000)
