@@ -1,77 +1,98 @@
 body {
   font-family: sans-serif;
-  background: #f0f8ff;
+  background-color: #f0f0f0;
   margin: 0;
   padding: 0;
 }
 
 #login, #chat {
+  max-width: 600px;
+  margin: 30px auto;
   padding: 20px;
-}
-
-button.rounded {
-  background-color: #87CEFA;
-  border: none;
-  border-radius: 12px;
-  padding: 8px 16px;
-  color: white;
-  cursor: pointer;
-  margin: 4px;
-}
-
-button.rounded:hover {
-  background-color: #00BFFF;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 #chat-box {
-  display: flex;
-  flex-direction: column;     /* 縦並び */
-  gap: 6px;                   /* 各メッセージの間隔 */
-  height: 300px;
-  overflow-y: auto;
   border: 1px solid #ccc;
+  height: 400px;
+  overflow-y: scroll;
   padding: 10px;
-  background: #fff;
+  display: flex;
+  flex-direction: column;
+  background-color: #fafafa;
   margin-bottom: 10px;
+  border-radius: 5px;
 }
 
 .bubble {
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 5px 0;
   max-width: 70%;
-  word-break: break-word;
+  word-wrap: break-word;
 }
 
 .bubble.me {
-  background: #d0f0fd;
-  align-self: flex-end;       /* 右側に寄せる */
+  background-color: #dcf8c6;
+  align-self: flex-end;
+  text-align: right;
 }
 
 .bubble.you {
-  background: #e6e6e6;
-  align-self: flex-start;     /* 左側に寄せる */
+  background-color: #e6e6e6;
+  align-self: flex-start;
+  text-align: left;
+}
+
+input[type="text"], input[type="password"], select {
+  width: calc(100% - 20px);
+  padding: 8px;
+  margin: 5px 0 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 8px 12px;
+  margin: 5px 5px 5px 0;
+  border: none;
+  background-color: #4285f4;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #357ae8;
 }
 
 .link-preview {
-  background: #fafafa;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 8px;
-  margin-top: 4px;
+  border-top: 1px solid #ddd;
+  margin-top: 5px;
+  padding-top: 5px;
   font-size: 0.9em;
 }
 
 .link-preview img {
   max-width: 100%;
-  border-radius: 4px;
+  height: auto;
+  border-radius: 5px;
+  margin-bottom: 5px;
 }
 
 .preview-title {
   font-weight: bold;
-  margin-top: 4px;
+  color: #333;
 }
 
 .preview-desc {
-  font-size: 0.85em;
-  color: #555;
+  color: #666;
+}
+
+.chat-link {
+  color: #1a0dab;
+  text-decoration: underline;
+  word-break: break-all;
 }
